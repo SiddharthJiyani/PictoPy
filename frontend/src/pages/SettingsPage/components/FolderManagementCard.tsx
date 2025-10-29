@@ -1,11 +1,15 @@
 import React from 'react';
-import { Folder, Trash2 } from 'lucide-react';
+import { Folder, Trash2, AlertCircle, Check, Loader2 } from 'lucide-react';
 
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { useSelector } from 'react-redux';
 import FolderPicker from '@/components/FolderPicker/FolderPicker';
 
 import { useFolderOperations } from '@/hooks/useFolderOperations';
+import { useTaggingStatus } from '@/hooks/useTaggingStatus';
+import { selectTaggingStatus } from '@/features/folderSelectors';
 import { FolderDetails } from '@/types/Folder';
 import SettingsCard from './SettingsCard';
 
@@ -21,6 +25,11 @@ const FolderManagementCard: React.FC = () => {
     disableAITaggingPending,
     deleteFolderPending,
   } = useFolderOperations();
+
+  // Initialize tagging status polling
+  useTaggingStatus();
+
+  const taggingStatus = useSelector(selectTaggingStatus);
 
   return (
     <SettingsCard
@@ -43,6 +52,48 @@ const FolderManagementCard: React.FC = () => {
                       {folder.folder_path}
                     </span>
                   </div>
+
+                  {/* AI Tagging Progress, Loading, or Empty Folder Message */}
+                  {folder.AI_Tagging && (
+                    <div className="mt-3 transition-all duration-300 ease-in-out">
+                      {!taggingStatus[folder.folder_id] ? (
+                        // Loading state - show while waiting for initial API response
+                        <div className="flex items-center gap-2 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                          <Loader2 className="h-4 w-4 flex-shrink-0 animate-spin" />
+                          <span>Checking folder status...</span>
+                        </div>
+                      ) : taggingStatus[folder.folder_id].has_images === false ? (
+                        // Empty folder message
+                        <div className="flex items-center gap-2 rounded-md bg-yellow-50 px-3 py-2.5 text-sm text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800/30">
+                          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                          <span className="font-medium">No images found in this folder</span>
+                        </div>
+                      ) : taggingStatus[folder.folder_id].has_images === true && (
+                        // Progress bar or completion status
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">AI Tagging Progress</span>
+                            {taggingStatus[folder.folder_id].tagging_percentage >= 100 ? (
+                              // Completed - show checkmark and 100%
+                              <span className="flex items-center gap-1 text-green-600 dark:text-green-400 font-medium">
+                                <Check className="h-3.5 w-3.5" />
+                                100%
+                              </span>
+                            ) : (
+                              // In progress - show only percentage
+                              <span className="text-muted-foreground">
+                                {Math.round(taggingStatus[folder.folder_id].tagging_percentage)}%
+                              </span>
+                            )}
+                          </div>
+                          <Progress 
+                            value={taggingStatus[folder.folder_id].tagging_percentage}
+                            className="h-2"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="ml-4 flex items-center gap-4">

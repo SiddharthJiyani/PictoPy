@@ -13,6 +13,20 @@ class FolderTaggingInfo(BaseModel):
         le=100,
         description="Percentage of images that have been tagged (0-100)",
     )
+    total_images: int = Field(
+        ...,
+        ge=0,
+        description="Total number of images in the folder"
+    )
+    tagged_images: int = Field(
+        ...,
+        ge=0,
+        description="Number of images that have been tagged"
+    )
+    has_images: bool = Field(
+        ...,
+        description="Whether the folder contains any images"
+    )
 
 
 class FolderTaggingStatusSuccessResponse(BaseModel):

@@ -1,12 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { FolderDetails } from '@/types/Folder';
+import { FolderTaggingInfo } from '@/types/FolderStatus';
 
 interface FolderState {
   folders: FolderDetails[];
+  taggingStatus: { [folderId: string]: FolderTaggingInfo };
 }
 
 const initialState: FolderState = {
   folders: [],
+  taggingStatus: {},
 };
 
 const folderSlice = createSlice({
@@ -66,6 +69,20 @@ const folderSlice = createSlice({
     clearFolders(state) {
       state.folders = [];
     },
+
+    // Set tagging status for all folders
+    setTaggingStatus(state, action: PayloadAction<FolderTaggingInfo[]>) {
+      const statusData = action.payload;
+      state.taggingStatus = {};
+      statusData.forEach((status) => {
+        state.taggingStatus[status.folder_id] = status;
+      });
+    },
+
+    // Clear tagging status
+    clearTaggingStatus(state) {
+      state.taggingStatus = {};
+    },
   },
 });
 
@@ -75,6 +92,8 @@ export const {
   updateFolder,
   removeFolders,
   clearFolders,
+  setTaggingStatus,
+  clearTaggingStatus,
 } = folderSlice.actions;
 
 export default folderSlice.reducer;

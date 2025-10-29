@@ -100,3 +100,20 @@ export const selectFoldersGroupedByParent = createSelector(
     return grouped;
   },
 );
+
+// Tagging status selectors
+export const selectTaggingStatus = (state: RootState) => state.folders.taggingStatus;
+
+export const selectTaggingStatusByFolderId = createSelector(
+  [selectTaggingStatus, (_: RootState, folderId: string) => folderId],
+  (taggingStatus, folderId) => taggingStatus[folderId] || null,
+);
+
+// Get all active tagging folders (where percentage < 100 and has images)
+export const selectActiveTaggingFolders = createSelector(
+  [selectTaggingStatus],
+  (taggingStatus) => 
+    Object.values(taggingStatus).filter(
+      status => status.has_images && status.tagging_percentage < 100
+    ),
+);
